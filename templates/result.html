@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Diagnostic Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="result-hero" aria-labelledby="result-title">
+        <p class="eyebrow">Diagnostic Result</p>
+        <h1 id="result-title">{{ result.condition }}</h1>
+        <div class="confidence" aria-label="Confidence score">
+          <span>{{ "%.0f"|format(result.confidence * 100) }}%</span>
+          confidence
+        </div>
+        {% if result.is_demo_mode %}
+          <p class="demo-banner">Demo mode: this result is generated without a trained clinical model.</p>
+        {% endif %}
+      </section>
+
+      <section class="result-grid">
+        <article>
+          <h2>Clinical Note</h2>
+          <p>{{ result.clinical_note }}</p>
+        </article>
+        <article>
+          <h2>Referral Guidance</h2>
+          <p>{{ result.referral_recommendation }}</p>
+        </article>
+        <article>
+          <h2>Important Disclaimer</h2>
+          <p>
+            This prototype is for educational decision-support demonstration only.
+            Confirm findings through clinical examination and appropriate referral.
+          </p>
+        </article>
+      </section>
+
+      <nav class="actions" aria-label="Result actions">
+        <a class="secondary-button" href="{{ url_for('index') }}">Analyze Another Image</a>
+        <button class="primary-button" type="button" onclick="window.print()">Print / Save Result</button>
+      </nav>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Dermatology Diagnostic Support</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="masthead" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Local clinical decision support prototype</p>
+          <h1 id="page-title">AI Dermatology Diagnostic Support</h1>
+          <p class="lede">
+            Upload a clear skin image to receive a predicted class, confidence score,
+            clinical note, and referral guidance.
+          </p>
+        </div>
+        <aside class="status-panel" aria-label="System status">
+          <span class="status-dot" aria-hidden="true"></span>
+          {% if demo_mode %}
+            Demo mode active
+          {% else %}
+            Model mode active
+          {% endif %}
+        </aside>
+      </section>
+
+      <section class="workspace" aria-label="Image upload form">
+        <form class="upload-form" action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
+          <label class="drop-zone" for="image">
+            <span class="drop-zone__label">Select skin image</span>
+            <span class="drop-zone__hint">JPG, PNG, or WEBP. The image is not stored.</span>
+            <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+          </label>
+
+          <button class="primary-button" type="submit">Analyze Image</button>
+        </form>
+
+        <div class="guidance" aria-label="Use guidance">
+          <h2>Prototype Boundaries</h2>
+          <p>
+            This system supports clinical judgment; it does not replace a qualified
+            healthcare professional. Serious or uncertain cases should be referred.
+          </p>
+          <p>
+            No login, database, patient history, or image storage is used in this version.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
