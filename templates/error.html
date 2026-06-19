@@ -1,19 +1,11 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Upload Error</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
-  <body>
-    <main class="shell shell--narrow">
+{% extends "base.html" %}
+{% block title %}Upload Error{% endblock %}
+{% block shell_class %}shell--narrow{% endblock %}
+{% block content %}
       <section class="error-panel" aria-labelledby="error-title">
         <p class="eyebrow">Upload Error</p>
         <h1 id="error-title">Please upload a valid image</h1>
         <p>{{ message }}</p>
         <a class="primary-button" href="{{ url_for('index') }}">Return to Upload</a>
       </section>
-    </main>
-  </body>
-</html>
+{% endblock %}

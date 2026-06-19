@@ -9,9 +9,9 @@ from app.diagnostic import DermaClassifier, ImageUpload, UnsupportedFileError
 
 
 def create_app(config: dict | None = None) -> Flask:
-    app = Flask(__name__, instance_relative_config=False)
+    app = Flask(__name__, template_folder="../templates", static_folder="../static", instance_relative_config=False)
     app.config.update(
-        DERMA_MODEL_PATH=os.getenv("DERMA_MODEL_PATH", "models/derma_inceptionv3.keras"),
+        DERMA_MODEL_PATH=os.getenv("DERMA_MODEL_PATH", "derma_inceptionv3.keras"),
         DERMA_DEMO_MODE=_parse_bool(os.getenv("DERMA_DEMO_MODE", "")),
         MAX_UPLOAD_MB=int(os.getenv("MAX_UPLOAD_MB", "8")),
         MAX_CONTENT_LENGTH=int(os.getenv("MAX_UPLOAD_MB", "8")) * 1024 * 1024,
@@ -49,6 +49,18 @@ def create_app(config: dict | None = None) -> Flask:
             return _error(str(exc), 503)
 
         return render_template("result.html", result=result)
+
+    @app.get("/docs")
+    def docs():
+        return render_template("docs.html")
+
+    @app.get("/privacy")
+    def privacy():
+        return render_template("privacy.html")
+
+    @app.get("/terms")
+    def terms():
+        return render_template("terms.html")
 
     @app.get("/health")
     def health():

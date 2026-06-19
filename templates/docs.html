@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Documentation{% endblock %}
+{% block content %}
+      <section class="masthead">
+        <div>
+          <p class="eyebrow">Project Details</p>
+          <h1>Documentation</h1>
+        </div>
+      </section>
+
+      <article class="static-content">
+        <h2>Overview</h2>
+        <p>This project is an AI-powered Dermatology Diagnostic Support system developed as an academic prototype. It is designed to assist in clinical decision-making by analyzing skin images and predicting potential dermatological conditions.</p>
+        
+        <h2>Architecture</h2>
+        <p>The system utilizes a deep learning model based on the InceptionV3 architecture, fine-tuned on a dataset of dermatological images. The web interface is built using Flask, providing a lightweight and responsive prototype for uploading images and viewing results.</p>
+        
+        <h2>Features</h2>
+        <ul>
+          <li><strong>Image Classification:</strong> Predicts the likelihood of various skin conditions.</li>
+          <li><strong>Confidence Scoring:</strong> Provides a percentage-based confidence level for the prediction.</li>
+          <li><strong>Clinical Notes:</strong> Generates relevant clinical observations based on the classification.</li>
+          <li><strong>Referral Guidance:</strong> Suggests next steps or triage recommendations.</li>
+          <li><strong>Demo Mode:</strong> A safe, fallback mode that simulates the diagnostic process without requiring a fully trained model.</li>
+        </ul>
+
+        <h2>Usage</h2>
+        <p>To use the application, navigate to the home page, select a clear image of the skin condition (in JPG, PNG, or WEBP format), and click "Analyze Image". The system will process the image and display a detailed diagnostic report.</p>
+      </article>
+{% endblock %}
