@@ -1,13 +1,5 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Dermatology Diagnostic Support</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
-  <body>
-    <main class="shell">
+{% extends "base.html" %}
+{% block content %}
       <section class="masthead" aria-labelledby="page-title">
         <div>
           <p class="eyebrow">Local clinical decision support prototype</p>
@@ -49,6 +41,4 @@
           </p>
         </div>
       </section>
-    </main>
-  </body>
-</html>
+{% endblock %}
