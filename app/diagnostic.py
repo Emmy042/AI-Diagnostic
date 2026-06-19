@@ -135,10 +135,10 @@ class DermaClassifier:
         self.preprocessor = preprocessor or Preprocessor()
         self._model = None
 
-        if not self.demo_mode and self.model_path.exists():
+        if not self.demo_mode:
+            if not self.model_path.exists():
+                raise FileNotFoundError(f"Model file not found at {self.model_path}. Cannot start in production mode.")
             self._model = self._load_model()
-        elif not self.model_path.exists():
-            self.demo_mode = True
 
     @property
     def ready(self) -> bool:
