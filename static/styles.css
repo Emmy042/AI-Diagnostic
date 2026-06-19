@@ -11,6 +11,17 @@
   --shadow: 0 24px 60px rgba(21, 32, 27, 0.12);
 }
 
+[data-theme="dark"] {
+  --ink: #e8f0ec;
+  --muted: #95a89f;
+  --paper: #061c1a; /* Very dark teal matching the logo */
+  --panel: #0b2f2c; /* Slightly lighter teal panel */
+  --line: #174f4a;
+  --accent: #2dd4bf; /* Bright teal for contrast */
+  --accent-dark: #5eead4;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -35,7 +46,7 @@ input {
 .shell {
   width: min(1120px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 48px 0;
+  padding: 16px 0 48px;
 }
 
 .shell--narrow {
@@ -390,4 +401,272 @@ h2 {
     width: 100%;
     padding: 0;
   }
+}
+
+
+/* Header & Theme Toggle */
+.site-header {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Invert logo in dark mode so it remains visible against dark teal */
+[data-theme="dark"] .brand-logo {
+  filter: invert(1) hue-rotate(180deg) brightness(2);
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(15, 118, 110, 0.1);
+}
+
+.theme-toggle .moon-icon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .sun-icon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .moon-icon {
+  display: block;
+}
+
+[data-theme="dark"] body {
+  background:
+    linear-gradient(90deg, rgba(45, 212, 191, 0.05) 1px, transparent 1px),
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 32px;
+}
+
+.footer-section h3 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  color: var(--accent-dark);
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 8px;
+}
+
+.footer-section a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer-section a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.academic-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  border-radius: 4px;
+}
+
+.academic-card strong {
+  color: var(--ink);
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.footer-bottom {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.social-icons {
+  display: flex;
+  gap: 16px;
+}
+
+.social-icons a {
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.social-icons a:hover {
+  color: var(--accent);
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* Static Pages Styles */
+.static-content {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 48px;
+  margin-top: 32px;
+  border-radius: 4px;
+}
+
+.static-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 24px;
+}
+
+.static-content h2 {
+  font-size: 1.5rem;
+  margin-top: 32px;
+  color: var(--accent-dark);
+}
+
+.static-content p {
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.static-content ul, .static-content ol {
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  padding-left: 20px;
+}
+
+.static-content li {
+  margin-bottom: 8px;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .actions,
+  .site-footer {
+    display: none;
+  }
+
+  .shell {
+    width: 100%;
+    padding: 0;
+  }
+}
+
+
+/* Header & Theme Toggle */
+.site-header {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Invert logo in dark mode so it remains visible against dark teal */
+[data-theme="dark"] .brand-logo {
+  filter: invert(1) hue-rotate(180deg) brightness(2);
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(15, 118, 110, 0.1);
+}
+
+.theme-toggle .moon-icon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .sun-icon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .moon-icon {
+  display: block;
+}
+
+[data-theme="dark"] body {
+  background:
+    linear-gradient(90deg, rgba(45, 212, 191, 0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(45, 212, 191, 0.05) 1px, transparent 1px),
+    var(--paper);
+  background-size: 36px 36px;
+}
+
+[data-theme="dark"] .drop-zone {
+  background: #08211f;
+}
+
+[data-theme="dark"] .demo-banner {
+  background: rgba(180, 83, 9, 0.15); /* Dark amber/signal tone */
+  color: var(--ink);
+  border-left: 6px solid #fbbf24; /* Brighter signal orange/yellow for contrast */
 }
