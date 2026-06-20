@@ -5,5 +5,3 @@ __pycache__/
 models/*.keras
 models/*.h5
 uploads/
-.keras
-.env
