@@ -2,6 +2,10 @@
 __pycache__/
 .pytest_cache/
 *.pyc
+*.keras
+*.h5
 models/*.keras
 models/*.h5
 uploads/
+.env
+tasks.db
