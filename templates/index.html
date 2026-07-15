@@ -26,8 +26,19 @@
             <span class="drop-zone__hint">JPG, PNG, or WEBP. The image is not stored.</span>
             <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
           </label>
+          
+          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; width: 100%;">
+            <div style="flex: 1; display: flex; flex-direction: column;">
+              <label for="facility_name" style="margin-bottom: 0.5rem; font-weight: 500;">Facility Name (Optional)</label>
+              <input type="text" id="facility_name" name="facility_name" placeholder="e.g. Lagos General Hospital" style="padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column;">
+              <label for="region" style="margin-bottom: 0.5rem; font-weight: 500;">Region / State (Optional)</label>
+              <input type="text" id="region" name="region" placeholder="e.g. Lagos" style="padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+          </div>
 
-          <button class="primary-button" type="submit">Analyze Image</button>
+          <button class="primary-button" type="submit" style="margin-top: 1.5rem;">Analyze Image</button>
         </form>
 
         <div class="guidance" aria-label="Use guidance">
@@ -37,7 +48,7 @@
             healthcare professional. Serious or uncertain cases should be referred.
           </p>
           <p>
-            No login, database, patient history, or image storage is used in this version.
+            No login, patient history, or image storage is used in this version. Non-identifiable diagnostic analytics are tracked to monitor performance.
           </p>
         </div>
       </section>

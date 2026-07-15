@@ -5,14 +5,17 @@ import uuid
 import json
 import sqlite3
 import logging
+import time
 from pythonjsonlogger import jsonlogger
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import dataclasses
 
 from flask import Flask, jsonify, render_template, request
+from flask_migrate import Migrate
 
 from app.diagnostic import DermaClassifier, ImageUpload, UnsupportedFileError
+from app.models import db, DiagnosticLog
 
 _executor = ThreadPoolExecutor(max_workers=2)
 DB_PATH = "tasks.db"
@@ -52,8 +55,6 @@ def configure_logging(app: Flask):
     app.logger.addHandler(logHandler)
     app.logger.setLevel(logging.INFO)
 
-
-
 def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__, template_folder="../templates", static_folder="../static", instance_relative_config=False)
     configure_logging(app)
@@ -64,9 +65,14 @@ def create_app(config: dict | None = None) -> Flask:
         DERMA_DEMO_MODE=_parse_bool(os.getenv("DERMA_DEMO_MODE", "")),
         MAX_UPLOAD_MB=int(os.getenv("MAX_UPLOAD_MB", "8")),
         MAX_CONTENT_LENGTH=int(os.getenv("MAX_UPLOAD_MB", "8")) * 1024 * 1024,
+        SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", "sqlite:///analytics.db"),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
     if config:
         app.config.update(config)
+
+    db.init_app(app)
+    Migrate(app, db)
 
     model_path = Path(app.config["DERMA_MODEL_PATH"])
     classifier = DermaClassifier(
@@ -84,6 +90,10 @@ def create_app(config: dict | None = None) -> Flask:
         uploaded = request.files.get("image")
         if uploaded is None or uploaded.filename == "":
             return _error("Please upload a valid image before requesting a diagnosis.", 400)
+            
+        facility_name = request.form.get("facility_name")
+        region = request.form.get("region")
+        user_agent = request.headers.get("User-Agent")
 
         try:
             image = ImageUpload(
@@ -101,15 +111,35 @@ def create_app(config: dict | None = None) -> Flask:
         task_id = str(uuid.uuid4())
         update_task(task_id, "processing")
 
-        def run_prediction(t_id, img):
+        def run_prediction(t_id, img, fac_name, reg, ua):
+            start_time = time.time()
             try:
                 res = classifier.predict(img)
-                update_task(t_id, "done", result=dataclasses.asdict(res))
+                duration_ms = int((time.time() - start_time) * 1000)
+                
+                with app.app_context():
+                    log_entry = DiagnosticLog(
+                        predicted_condition=res.condition,
+                        confidence=res.confidence,
+                        task_duration_ms=duration_ms,
+                        outcome="success",
+                        facility_name=fac_name,
+                        region=reg,
+                        device_type=ua
+                    )
+                    db.session.add(log_entry)
+                    db.session.commit()
+                    log_id = log_entry.id
+                
+                res_dict = dataclasses.asdict(res)
+                res_dict["log_id"] = log_id
+                
+                update_task(t_id, "done", result=res_dict)
             except Exception as exc:
                 app.logger.error("Inference failed for task %s: %s", t_id, exc)
                 update_task(t_id, "error", message="An internal error occurred during diagnosis. Please try again later.")
 
-        _executor.submit(run_prediction, task_id, image)
+        _executor.submit(run_prediction, task_id, image, facility_name, region, user_agent)
         app.logger.info("Started inference task %s", task_id)
         return render_template("processing.html", task_id=task_id)
 
@@ -130,6 +160,24 @@ def create_app(config: dict | None = None) -> Flask:
             msg = task["message"] or "Unknown error"
             delete_task(task_id)
             return _error(msg, 503)
+
+    @app.post("/feedback/<int:log_id>")
+    def feedback(log_id):
+        rating = request.form.get("rating")
+        override = request.form.get("override")
+        
+        log_entry = db.session.get(DiagnosticLog, log_id)
+        if log_entry:
+            if rating:
+                try:
+                    log_entry.helpful_rating = int(rating)
+                except ValueError:
+                    pass
+            if override:
+                log_entry.clinical_override = override
+            db.session.commit()
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": "Log not found"}), 404
 
     @app.get("/docs")
     def docs():
@@ -158,7 +206,6 @@ def create_app(config: dict | None = None) -> Flask:
         return render_template("error.html", message=message), status_code
 
     return app
-
 
 def _parse_bool(value: str | bool) -> bool:
     if isinstance(value, bool):
