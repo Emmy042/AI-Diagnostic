@@ -189,6 +189,38 @@ def create_app(config: dict | None = None) -> Flask:
             })
         return jsonify(data)
 
+    @app.post("/api/facilities/custom")
+    def add_custom_facility():
+        custom_region = request.json.get("region_name")
+        custom_facility = request.json.get("facility_name")
+        region_id = request.json.get("region_id")
+        
+        if not custom_facility:
+            return jsonify({"status": "error", "message": "Facility name is required"}), 400
+            
+        if custom_region:
+            region = db.session.query(Region).filter_by(name=custom_region).first()
+            if not region:
+                region = Region(name=custom_region)
+                db.session.add(region)
+                db.session.commit()
+            region_id = region.id
+        elif not region_id:
+            return jsonify({"status": "error", "message": "Region ID or Name is required"}), 400
+            
+        facility = db.session.query(Facility).filter_by(name=custom_facility, region_id=region_id).first()
+        if not facility:
+            facility = Facility(name=custom_facility, region_id=region_id)
+            db.session.add(facility)
+            db.session.commit()
+            
+        return jsonify({
+            "status": "success",
+            "region_id": region_id,
+            "facility_id": facility.id,
+            "facility_name": facility.name
+        })
+
     @app.get("/docs")
     def docs():
         return render_template("docs.html")

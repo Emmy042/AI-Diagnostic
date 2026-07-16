@@ -9,14 +9,22 @@
             clinical note, and referral guidance.
           </p>
         </div>
-        <aside class="status-panel" aria-label="System status">
-          <span class="status-dot" aria-hidden="true"></span>
-          {% if demo_mode %}
-            Demo mode active
-          {% else %}
-            Model mode active
-          {% endif %}
-        </aside>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+          <aside class="status-panel" aria-label="System status">
+            <span class="status-dot" aria-hidden="true"></span>
+            {% if demo_mode %}
+              Demo mode active
+            {% else %}
+              Model mode active
+            {% endif %}
+          </aside>
+          
+          <div id="facility_display" style="display: none; align-items: center; gap: 0.5rem; background: white; border: 1px solid #e2e8f0; border-radius: 999px; padding: 0.25rem 0.5rem 0.25rem 0.75rem; font-size: 0.75rem; color: #64748b; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span id="facility_name_display" style="font-weight: 500; color: #334155;">-</span>
+            <button type="button" id="btn_change_facility" style="background: #f1f5f9; border: none; padding: 0.15rem 0.4rem; border-radius: 999px; cursor: pointer; font-size: 0.7rem; color: #475569; font-weight: 600; margin-left: 0.25rem;">Edit</button>
+          </div>
+        </div>
       </section>
 
       <section class="workspace" aria-label="Image upload form">
@@ -28,13 +36,6 @@
           </label>
           
           <input type="hidden" name="facility_id" id="hidden_facility_id" value="">
-          <div id="facility_display" style="margin-top: 1.5rem; padding: 0.75rem; background: #f8fafc; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; display: none;">
-            <div>
-              <span style="font-size: 0.875rem; color: #64748b; display: block;">Current Facility</span>
-              <strong id="facility_name_display" style="color: #0f172a;">-</strong>
-            </div>
-            <button type="button" id="btn_change_facility" style="background: white; border: 1px solid #cbd5e1; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem; color: #334155; font-weight: 500;">Change</button>
-          </div>
 
           <button class="primary-button" type="submit" style="margin-top: 1.5rem;">Analyze Image</button>
         </form>
@@ -62,6 +63,7 @@
             <select id="region_select" style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; background-color: white;">
               <option value="">-- Select Region --</option>
             </select>
+            <input type="text" id="custom_region_input" placeholder="Enter custom region name..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; background-color: white; margin-top: 0.5rem; display: none;">
           </div>
           
           <div style="margin-bottom: 1.75rem;">
@@ -69,6 +71,7 @@
             <select id="facility_select" disabled style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; background-color: #f8fafc;">
               <option value="">-- Select Facility --</option>
             </select>
+            <input type="text" id="custom_facility_input" placeholder="Enter custom facility name..." style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; background-color: white; margin-top: 0.5rem; display: none;">
           </div>
           
           <div style="display: flex; gap: 1rem; justify-content: flex-end;">
@@ -84,7 +87,10 @@
         
         const modal = document.getElementById('facility_modal');
         const regionSelect = document.getElementById('region_select');
+        const customRegionInput = document.getElementById('custom_region_input');
         const facilitySelect = document.getElementById('facility_select');
+        const customFacilityInput = document.getElementById('custom_facility_input');
+        
         const btnSave = document.getElementById('btn_save_facility');
         const btnCancel = document.getElementById('btn_cancel_facility');
         const btnChange = document.getElementById('btn_change_facility');
@@ -96,13 +102,22 @@
         fetch('/api/facilities')
           .then(res => res.json())
           .then(data => {
+            // Sort regions alphabetically
+            data.sort((a, b) => a.name.localeCompare(b.name));
+            
             data.forEach(region => {
-              facilityData[region.id] = region.facilities;
+              facilityData[region.id] = region.facilities.sort((a, b) => a.name.localeCompare(b.name));
               const option = document.createElement('option');
               option.value = region.id;
               option.textContent = region.name;
               regionSelect.appendChild(option);
             });
+            
+            // Add custom option
+            const customOption = document.createElement('option');
+            customOption.value = 'custom';
+            customOption.textContent = 'Other (Custom...)';
+            regionSelect.appendChild(customOption);
             
             checkSavedFacility();
           })
@@ -111,10 +126,23 @@
         regionSelect.addEventListener('change', (e) => {
           const regionId = e.target.value;
           facilitySelect.innerHTML = '<option value="">-- Select Facility --</option>';
+          customFacilityInput.style.display = 'none';
           
-          if (regionId && facilityData[regionId]) {
+          if (regionId === 'custom') {
+            customRegionInput.style.display = 'block';
             facilitySelect.disabled = false;
             facilitySelect.style.backgroundColor = 'white';
+            const customFacOption = document.createElement('option');
+            customFacOption.value = 'custom';
+            customFacOption.textContent = 'Other (Custom...)';
+            facilitySelect.appendChild(customFacOption);
+            facilitySelect.value = 'custom';
+            customFacilityInput.style.display = 'block';
+          } else if (regionId && facilityData[regionId]) {
+            customRegionInput.style.display = 'none';
+            facilitySelect.disabled = false;
+            facilitySelect.style.backgroundColor = 'white';
+            
             facilityData[regionId].forEach(fac => {
               const option = document.createElement('option');
               option.value = fac.id;
@@ -122,27 +150,94 @@
               option.textContent = fac.name;
               facilitySelect.appendChild(option);
             });
+            
+            const customFacOption = document.createElement('option');
+            customFacOption.value = 'custom';
+            customFacOption.textContent = 'Other (Custom...)';
+            facilitySelect.appendChild(customFacOption);
           } else {
+            customRegionInput.style.display = 'none';
             facilitySelect.disabled = true;
             facilitySelect.style.backgroundColor = '#f8fafc';
           }
         });
-
-        btnSave.addEventListener('click', () => {
-          const selectedFacility = facilitySelect.options[facilitySelect.selectedIndex];
-          if (selectedFacility && selectedFacility.value) {
-            const facilityId = selectedFacility.value;
-            const facilityName = selectedFacility.dataset.name;
-            
-            localStorage.setItem('derma_facility_id', facilityId);
-            localStorage.setItem('derma_facility_name', facilityName);
-            
-            applySavedFacility();
-            modal.style.display = 'none';
+        
+        facilitySelect.addEventListener('change', (e) => {
+          if (e.target.value === 'custom') {
+            customFacilityInput.style.display = 'block';
           } else {
-            alert('Please select a valid region and facility before saving.');
+            customFacilityInput.style.display = 'none';
           }
         });
+
+        btnSave.addEventListener('click', async () => {
+          const rVal = regionSelect.value;
+          const fVal = facilitySelect.value;
+          
+          if (!rVal) {
+            alert('Please select a region.');
+            return;
+          }
+          if (rVal === 'custom' && !customRegionInput.value.trim()) {
+            alert('Please enter a custom region name.');
+            return;
+          }
+          if (!fVal) {
+            alert('Please select a facility.');
+            return;
+          }
+          if (fVal === 'custom' && !customFacilityInput.value.trim()) {
+            alert('Please enter a custom facility name.');
+            return;
+          }
+
+          btnSave.disabled = true;
+          btnSave.textContent = 'Saving...';
+
+          try {
+            if (fVal === 'custom') {
+              // Create custom facility via API
+              const payload = {
+                facility_name: customFacilityInput.value.trim()
+              };
+              if (rVal === 'custom') {
+                payload.region_name = customRegionInput.value.trim();
+              } else {
+                payload.region_id = rVal;
+              }
+              
+              const res = await fetch('/api/facilities/custom', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              const data = await res.json();
+              
+              if (data.status === 'success') {
+                saveAndApply(data.facility_id, data.facility_name);
+              } else {
+                alert('Error saving custom facility: ' + data.message);
+              }
+            } else {
+              // Standard selection
+              const selectedOption = facilitySelect.options[facilitySelect.selectedIndex];
+              saveAndApply(selectedOption.value, selectedOption.dataset.name);
+            }
+          } catch (err) {
+            console.error(err);
+            alert('A network error occurred while saving.');
+          } finally {
+            btnSave.disabled = false;
+            btnSave.textContent = 'Save Settings';
+          }
+        });
+
+        function saveAndApply(id, name) {
+          localStorage.setItem('derma_facility_id', id);
+          localStorage.setItem('derma_facility_name', name);
+          applySavedFacility();
+          modal.style.display = 'none';
+        }
 
         btnChange.addEventListener('click', () => {
           btnCancel.style.display = 'block'; // Allow canceling if they change their mind
