@@ -27,15 +27,13 @@
             <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
           </label>
           
-          <div style="margin-top: 1.5rem; display: flex; gap: 1rem; width: 100%;">
-            <div style="flex: 1; display: flex; flex-direction: column;">
-              <label for="facility_name" style="margin-bottom: 0.5rem; font-weight: 500;">Facility Name (Optional)</label>
-              <input type="text" id="facility_name" name="facility_name" placeholder="e.g. Lagos General Hospital" style="padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px;">
+          <input type="hidden" name="facility_id" id="hidden_facility_id" value="">
+          <div id="facility_display" style="margin-top: 1.5rem; padding: 0.75rem; background: #f8fafc; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; display: none;">
+            <div>
+              <span style="font-size: 0.875rem; color: #64748b; display: block;">Current Facility</span>
+              <strong id="facility_name_display" style="color: #0f172a;">-</strong>
             </div>
-            <div style="flex: 1; display: flex; flex-direction: column;">
-              <label for="region" style="margin-bottom: 0.5rem; font-weight: 500;">Region / State (Optional)</label>
-              <input type="text" id="region" name="region" placeholder="e.g. Lagos" style="padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
+            <button type="button" id="btn_change_facility" style="background: white; border: 1px solid #cbd5e1; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem; color: #334155; font-weight: 500;">Change</button>
           </div>
 
           <button class="primary-button" type="submit" style="margin-top: 1.5rem;">Analyze Image</button>
@@ -52,4 +50,127 @@
           </p>
         </div>
       </section>
+
+      <!-- Modal for selecting facility -->
+      <div id="facility_modal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px);">
+        <div style="background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 440px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">
+          <h2 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.25rem; color: #0f172a;">Clinic Settings</h2>
+          <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.4;">Select your facility. This will be saved securely on your device for future uploads.</p>
+          
+          <div style="margin-bottom: 1.25rem;">
+            <label for="region_select" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #334155;">Region / State</label>
+            <select id="region_select" style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; background-color: white;">
+              <option value="">-- Select Region --</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom: 1.75rem;">
+            <label for="facility_select" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #334155;">Facility Name</label>
+            <select id="facility_select" disabled style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; background-color: #f8fafc;">
+              <option value="">-- Select Facility --</option>
+            </select>
+          </div>
+          
+          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button id="btn_cancel_facility" style="background: white; border: 1px solid #cbd5e1; padding: 0.75rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 1rem; color: #334155; font-weight: 500; display: none;">Cancel</button>
+            <button id="btn_save_facility" class="primary-button" style="flex: 1;">Save Settings</button>
+          </div>
+        </div>
+      </div>
+
+      <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const facilityData = {}; // Will hold region -> facilities mapping
+        
+        const modal = document.getElementById('facility_modal');
+        const regionSelect = document.getElementById('region_select');
+        const facilitySelect = document.getElementById('facility_select');
+        const btnSave = document.getElementById('btn_save_facility');
+        const btnCancel = document.getElementById('btn_cancel_facility');
+        const btnChange = document.getElementById('btn_change_facility');
+        const hiddenFacilityId = document.getElementById('hidden_facility_id');
+        const facilityDisplay = document.getElementById('facility_display');
+        const facilityNameDisplay = document.getElementById('facility_name_display');
+
+        // Load facility data from API
+        fetch('/api/facilities')
+          .then(res => res.json())
+          .then(data => {
+            data.forEach(region => {
+              facilityData[region.id] = region.facilities;
+              const option = document.createElement('option');
+              option.value = region.id;
+              option.textContent = region.name;
+              regionSelect.appendChild(option);
+            });
+            
+            checkSavedFacility();
+          })
+          .catch(err => console.error("Failed to load facilities:", err));
+
+        regionSelect.addEventListener('change', (e) => {
+          const regionId = e.target.value;
+          facilitySelect.innerHTML = '<option value="">-- Select Facility --</option>';
+          
+          if (regionId && facilityData[regionId]) {
+            facilitySelect.disabled = false;
+            facilitySelect.style.backgroundColor = 'white';
+            facilityData[regionId].forEach(fac => {
+              const option = document.createElement('option');
+              option.value = fac.id;
+              option.dataset.name = fac.name;
+              option.textContent = fac.name;
+              facilitySelect.appendChild(option);
+            });
+          } else {
+            facilitySelect.disabled = true;
+            facilitySelect.style.backgroundColor = '#f8fafc';
+          }
+        });
+
+        btnSave.addEventListener('click', () => {
+          const selectedFacility = facilitySelect.options[facilitySelect.selectedIndex];
+          if (selectedFacility && selectedFacility.value) {
+            const facilityId = selectedFacility.value;
+            const facilityName = selectedFacility.dataset.name;
+            
+            localStorage.setItem('derma_facility_id', facilityId);
+            localStorage.setItem('derma_facility_name', facilityName);
+            
+            applySavedFacility();
+            modal.style.display = 'none';
+          } else {
+            alert('Please select a valid region and facility before saving.');
+          }
+        });
+
+        btnChange.addEventListener('click', () => {
+          btnCancel.style.display = 'block'; // Allow canceling if they change their mind
+          modal.style.display = 'flex';
+        });
+        
+        btnCancel.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+
+        function checkSavedFacility() {
+          if (!localStorage.getItem('derma_facility_id')) {
+            btnCancel.style.display = 'none'; // Force selection on first visit
+            modal.style.display = 'flex';
+          } else {
+            applySavedFacility();
+          }
+        }
+
+        function applySavedFacility() {
+          const fId = localStorage.getItem('derma_facility_id');
+          const fName = localStorage.getItem('derma_facility_name');
+          if (fId) {
+            hiddenFacilityId.value = fId;
+            facilityNameDisplay.textContent = fName;
+            facilityDisplay.style.display = 'flex';
+          }
+        }
+      });
+      </script>
 {% endblock %}

@@ -14,9 +14,14 @@ This file is the project's implementation log.
 ## Database Analytics Layer (July 2026)
 - Created `app/models.py` with `DiagnosticLog` SQLAlchemy model.
 - Integrated Flask-SQLAlchemy and Flask-Migrate into the app factory (`app/web.py`).
-- Added optional facility name and region metadata fields to `templates/index.html`.
 - Added 1-5 star rating feedback UI and clinical override to `templates/result.html`.
 - Created `/feedback/<log_id>` API endpoint for async feedback submission.
+
+## Facility Management Update (July 2026)
+- Migrated facility and region tracking from free-text strings to relational tables (`Region` and `Facility`).
+- Added an API endpoint `/api/facilities` to serve dynamic region/facility choices.
+- Improved the Frontend UX with a "Clinic Settings" modal that remembers the user's facility using `localStorage`. This eliminates the need to manually enter facility data on every upload.
+- Created `seed_db.py` to auto-populate the database with example Nigerian regions and facilities.
 
 ## Documentation (July 2026)
 - Created `docs/DEPLOYMENT.md` — full deployment guide (local, production, Docker, reverse proxy).

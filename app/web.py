@@ -15,7 +15,7 @@ from flask import Flask, jsonify, render_template, request
 from flask_migrate import Migrate
 
 from app.diagnostic import DermaClassifier, ImageUpload, UnsupportedFileError
-from app.models import db, DiagnosticLog
+from app.models import db, DiagnosticLog, Region, Facility
 
 _executor = ThreadPoolExecutor(max_workers=2)
 DB_PATH = "tasks.db"
@@ -91,8 +91,7 @@ def create_app(config: dict | None = None) -> Flask:
         if uploaded is None or uploaded.filename == "":
             return _error("Please upload a valid image before requesting a diagnosis.", 400)
             
-        facility_name = request.form.get("facility_name")
-        region = request.form.get("region")
+        facility_id = request.form.get("facility_id")
         user_agent = request.headers.get("User-Agent")
 
         try:
@@ -111,7 +110,7 @@ def create_app(config: dict | None = None) -> Flask:
         task_id = str(uuid.uuid4())
         update_task(task_id, "processing")
 
-        def run_prediction(t_id, img, fac_name, reg, ua):
+        def run_prediction(t_id, img, fac_id, ua):
             start_time = time.time()
             try:
                 res = classifier.predict(img)
@@ -123,8 +122,7 @@ def create_app(config: dict | None = None) -> Flask:
                         confidence=res.confidence,
                         task_duration_ms=duration_ms,
                         outcome="success",
-                        facility_name=fac_name,
-                        region=reg,
+                        facility_id=fac_id if fac_id else None,
                         device_type=ua
                     )
                     db.session.add(log_entry)
@@ -139,7 +137,7 @@ def create_app(config: dict | None = None) -> Flask:
                 app.logger.error("Inference failed for task %s: %s", t_id, exc)
                 update_task(t_id, "error", message="An internal error occurred during diagnosis. Please try again later.")
 
-        _executor.submit(run_prediction, task_id, image, facility_name, region, user_agent)
+        _executor.submit(run_prediction, task_id, image, facility_id, user_agent)
         app.logger.info("Started inference task %s", task_id)
         return render_template("processing.html", task_id=task_id)
 
@@ -178,6 +176,18 @@ def create_app(config: dict | None = None) -> Flask:
             db.session.commit()
             return jsonify({"status": "success"})
         return jsonify({"status": "error", "message": "Log not found"}), 404
+
+    @app.get("/api/facilities")
+    def get_facilities():
+        regions = db.session.query(Region).all()
+        data = []
+        for r in regions:
+            data.append({
+                "id": r.id,
+                "name": r.name,
+                "facilities": [{"id": f.id, "name": f.name} for f in r.facilities]
+            })
+        return jsonify(data)
 
     @app.get("/docs")
     def docs():
