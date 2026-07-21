@@ -9,3 +9,6 @@ models/*.h5
 uploads/
 .env
 tasks.db
+venv/
+instance/
+*.zip
