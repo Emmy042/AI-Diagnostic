@@ -50,6 +50,10 @@ CONDITION_NOTES = {
         "note": "A viral illness that may include fever and characteristic skin lesions.",
         "referral": "Follow local public health guidance and refer/isolate when clinically suspected.",
     },
+    "Unknown": {
+        "note": "The image could not be confidently matched to any of our supported skin conditions. It may not be a skin image, or it might be a condition we don't recognize.",
+        "referral": "Please ensure you upload a clear image of a skin lesion. If the condition persists, consult a healthcare professional."
+    },
 }
 
 
@@ -154,9 +158,14 @@ class DermaClassifier:
         processed = self.preprocessor.transform(image)
         predictions = self._model.predict(processed, verbose=0)[0]
         best_index = int(np.argmax(predictions))
+        confidence = float(predictions[best_index])
+        
+        if confidence < 0.60:
+            return DiagnosticResult.from_condition("Unknown", confidence, is_demo_mode=False)
+
         return DiagnosticResult.from_condition(
             CLASS_LABELS[best_index],
-            float(predictions[best_index]),
+            confidence,
             is_demo_mode=False,
         )
 

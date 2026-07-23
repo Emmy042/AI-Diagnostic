@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess
 import glob
 import tensorflow as tf
 from tqdm import tqdm
@@ -9,10 +8,10 @@ from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+import numpy as np
+from sklearn.utils.class_weight import compute_class_weight
 
-# ==========================================
 # 1. Configuration & Classes
-# ==========================================
 CLASS_LABELS = [
     "Melanoma", "Eczema", "Psoriasis", "Acne Vulgaris", 
     "Tinea-Ringworm", "Vitiligo", "Monkeypox"
@@ -24,9 +23,7 @@ IMAGE_SIZE = (299, 299)
 BATCH_SIZE = 32
 EPOCHS = 20
 
-# ==========================================
 # 2. Download and Consolidation Logic
-# ==========================================
 def prepare_datasets():
     """Downloads Kaggle datasets and organizes them into the 7 expected classes."""
     print("Preparing directories...")
@@ -96,9 +93,7 @@ def prepare_datasets():
         print(f" - {label}: {count} images")
 
 
-# ==========================================
 # 3. Model Training
-# ==========================================
 def train_model():
     print("\nLoading data generators...")
     datagen = ImageDataGenerator(
@@ -145,12 +140,22 @@ def train_model():
                                  save_best_only=True, mode='max', verbose=1)
     early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
+    print("\nComputing Class Weights to handle dataset imbalance...")
+    class_weights_array = compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(train_gen.classes),
+        y=train_gen.classes
+    )
+    class_weights = dict(enumerate(class_weights_array))
+    print("Class Weights:", class_weights)
+
     print("\nStarting Training...")
     model.fit(
         train_gen, 
         epochs=EPOCHS, 
         validation_data=val_gen,
-        callbacks=[checkpoint, early_stop]
+        callbacks=[checkpoint, early_stop],
+        class_weight=class_weights
     )
 
     print("\nTraining Complete! Best model saved as 'derma_inceptionv3.keras'.")

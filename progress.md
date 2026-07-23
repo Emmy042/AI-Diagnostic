@@ -29,3 +29,10 @@ This file is the project's implementation log.
 - Created `docs/SYSADMIN_GUIDE.md` — installation, monitoring, backup, troubleshooting.
 - Created `docs/MAINTENANCE_ROADMAP.md` — routine schedules, model retraining, feature roadmap.
 - Updated `context.md`, `progress.md`, and `todo.md` to reflect all changes.
+
+## Codebase Refactoring & Bug Fixes (July 2026)
+- Removed unused Next.js `frontend/` directory.
+- Refactored `colab_trainer.py` and `train_model.py` to remove excessively verbose AI-generated comments and unused imports.
+- Fixed `tests/test_flask_app.py` failing due to the web app's transition to background processing logic. All 11 tests now pass.
+- Added confidence thresholding logic to `app/diagnostic.py` (<60% confidence returns "Unknown") to handle non-skin images gracefully.
+- Fixed severe class imbalance in `colab_trainer.py` by computing and applying `class_weight` during model training.

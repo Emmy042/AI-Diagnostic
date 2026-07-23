@@ -31,8 +31,7 @@ def test_predict_route_handles_valid_image():
     )
 
     assert response.status_code == 200
-    assert b"Diagnostic Result" in response.data
-    assert b"Demo mode" in response.data
+    assert b"Analyzing Image..." in response.data
 
 
 def test_predict_route_rejects_invalid_image():
