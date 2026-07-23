@@ -44,66 +44,24 @@ Run this cell to download and unzip it directly into Colab:
 ```
 *(Note: You will need to write a little code to reorganize the folders to match your 7 exact classes if the Kaggle dataset uses different names).*
 
-### Cell 3: The Training Script
-Paste the script I wrote for you earlier into the final cell. I've modified it slightly to install TensorFlow and run smoothly in Colab's notebook environment.
-
+### Cell 3: Install Dependencies & Upload Training Script
 ```python
-import os
-import tensorflow as tf
-from tensorflow.keras.applications import InceptionV3
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-# Ensure this path points to where your 7 condition folders are located
-DATASET_PATH = "/content/dataset" 
-
-CLASS_LABELS = [
-    "Melanoma", "Eczema", "Psoriasis", "Acne Vulgaris", 
-    "Tinea-Ringworm", "Vitiligo", "Monkeypox"
-]
-
-IMAGE_SIZE = (299, 299)
-BATCH_SIZE = 32
-EPOCHS = 15 # You can increase this for better accuracy!
-
-# 1. Data Generators
-datagen = ImageDataGenerator(
-    preprocessing_function=tf.keras.applications.inception_v3.preprocess_input,
-    validation_split=0.2,
-    rotation_range=20, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True
-)
-
-train_gen = datagen.flow_from_directory(
-    DATASET_PATH, target_size=IMAGE_SIZE, batch_size=BATCH_SIZE, 
-    class_mode='categorical', classes=CLASS_LABELS, subset='training'
-)
-val_gen = datagen.flow_from_directory(
-    DATASET_PATH, target_size=IMAGE_SIZE, batch_size=BATCH_SIZE, 
-    class_mode='categorical', classes=CLASS_LABELS, subset='validation'
-)
-
-# 2. Model Architecture
-base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
-for layer in base_model.layers:
-    layer.trainable = False
-
-x = GlobalAveragePooling2D()(base_model.output)
-x = Dense(512, activation='relu')(x)
-x = Dropout(0.5)(x)
-predictions = Dense(len(CLASS_LABELS), activation='softmax')(x)
-
-model = Model(inputs=base_model.input, outputs=predictions)
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), 
-              loss='categorical_crossentropy', metrics=['accuracy'])
-
-# 3. Train
-model.fit(train_gen, epochs=EPOCHS, validation_data=val_gen)
-
-# 4. Save
-model.save("/content/derma_inceptionv3.keras")
-print("Saved as derma_inceptionv3.keras!")
+!pip install -q scikit-learn tqdm
 ```
+
+### Cell 4: Run the Training Script
+Upload `colab_trainer.py` from your project to Colab (use the file browser on the left, or drag-and-drop), then run it:
+```python
+!python colab_trainer.py
+```
+
+The script will:
+1. Download and consolidate both Kaggle datasets
+2. **Balance classes** (capped at 2000 images each to prevent bias)
+3. Train in two phases — frozen base, then fine-tuning top layers
+4. Print a **Classification Report** at the end so you can verify no single class dominates predictions
+
+> **⚠️ Check the report!** If any class shows > 50% of all predictions, the model is still biased and needs more data for underrepresented classes.
 
 ## Step 4: Download and Run Locally
 1. Once the training finishes, look at the **Files** menu on the far left side of Google Colab (the folder icon).
