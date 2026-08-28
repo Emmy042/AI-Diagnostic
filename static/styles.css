@@ -670,3 +670,11 @@ h2 {
   color: var(--ink);
   border-left: 6px solid #fbbf24; /* Brighter signal orange/yellow for contrast */
 }
+
+/* Hide interactive elements when printing */
+@media print {
+  .feedback-section,
+  .actions {
+    display: none !important;
+  }
+}

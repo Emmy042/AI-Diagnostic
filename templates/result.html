@@ -37,9 +37,9 @@
       </nav>
 
       {% if result.log_id %}
-      <section class="feedback-section" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid #eaeaea; border-radius: 8px; background-color: #f9f9f9;">
+      <section class="feedback-section" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: 8px; background-color: var(--panel);">
         <h2>Provide Feedback</h2>
-        <p style="margin-bottom: 1rem; color: #555;">Help us improve by rating this diagnosis and providing an optional override.</p>
+        <p style="margin-bottom: 1rem; color: var(--muted);">Help us improve by rating this diagnosis and providing an optional override.</p>
         
         <form id="feedback-form" action="{{ url_for('feedback', log_id=result.log_id) }}" method="post" style="display: flex; flex-direction: column; gap: 1rem;">
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -61,10 +61,10 @@
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label for="override" style="font-weight: 500;">Clinical Override (Optional)</label>
-            <textarea id="override" name="override" rows="3" placeholder="If the diagnosis is incorrect, what is your clinical assessment?" style="padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;"></textarea>
+            <textarea id="override" name="override" rows="3" placeholder="If the diagnosis is incorrect, what is your clinical assessment?" style="padding: 0.75rem; border: 1px solid var(--line); border-radius: 4px; font-family: inherit; background-color: var(--panel); color: var(--ink);"></textarea>
           </div>
           
-          <button type="submit" class="secondary-button" style="align-self: flex-start; padding: 0.5rem 1rem; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Submit Feedback</button>
+          <button type="submit" class="secondary-button" style="align-self: flex-start; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; color: var(--ink); background-color: transparent;">Submit Feedback</button>
         </form>
         <div id="feedback-success" style="display: none; margin-top: 1rem; color: #2e7d32; font-weight: 500;">Thank you! Your feedback has been recorded.</div>
         

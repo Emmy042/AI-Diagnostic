@@ -36,3 +36,8 @@ This file is the project's implementation log.
 - Fixed `tests/test_flask_app.py` failing due to the web app's transition to background processing logic. All 11 tests now pass.
 - Added confidence thresholding logic to `app/diagnostic.py` (<60% confidence returns "Unknown") to handle non-skin images gracefully.
 - Fixed severe class imbalance in `colab_trainer.py` by computing and applying `class_weight` during model training.
+
+## UI Improvements (August 2026)
+- Updated footer GitHub link to point to the correct repository (`Buchidrums`).
+- Fixed dark mode inconsistency in the Provide Feedback section using CSS variables.
+- Added print styles (`@media print`) to hide the feedback form and action buttons on printed results.
